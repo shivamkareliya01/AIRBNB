@@ -61,33 +61,25 @@ app.use(
 );
 
 const store = MongoStore.create({
-    mongoUrl: dbUrl,
+    mongoUrl: process.env.ATLASDB_URL,
     crypto: {
-        secret: process.env.SECRET,
+        secret: process.env.EXPRESS_SESSION_SECRET,
     },
     touchAfter: 24 * 3600,
 });
 
 store.on("error", () => {
-    console.log("ERROR in MONGO SESSION STORE", err);
+    console.log("Mongo Session Store Error", error);
 });
 
 const sessionOptions = {
     store,
-    secret:  process.env.SECRET,
-
+    secret: process.env.EXPRESS_SESSION_SECRET,
     resave: false,
-
-    saveUninitialized: true,
-
+    saveUninitialized: false,
     cookie: {
-        expires:
-            Date.now() +
-            7 * 24 * 60 * 60 * 1000,
-
-        maxAge:
-            7 * 24 * 60 * 60 * 1000,
-
+        expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        maxAge: 7 * 24 * 60 * 60 * 1000,
         httpOnly: true,
     },
 };
