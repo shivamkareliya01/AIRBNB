@@ -1,0 +1,153 @@
+<% layout("/layouts/boilerplate") %>
+
+
+<div class="row mt-3">
+    <div class="col-8 offset-3">
+        <h3><%= listing.title %></h3>
+    </div>
+
+    <div class="card col-6 offset-3 show-card listing-card">
+        <img src="<%= listing.image.url %>" class="card-img-top show-img" alt="listing-image">
+
+        <div class="card-body">
+            <p class="card-text">Owned by <i><%= listing.owner.username %></i></p>
+               
+            <p class="card-text"><%= listing.description %> </p>
+            <p class="card-text"> &#8377; <%= listing.price.toLocaleString("en-IN") %> </p>
+            <p class="card-text"><%= listing.location %></p>
+            <p class="card-text"><%= listing.country %></p>
+        
+        </div>
+    </div>
+    <br>
+
+    <% if(currUser && listing.owner._id.equals(currUser._id)) { %>
+    <div class="col-6 offset-3 mt-3">
+        <div class="d-flex gap-2">
+            <a href="/listings/<%= listing._id %>/edit" class="btn btn-dark edit-btn">
+                Edit
+            </a>
+
+            <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE">
+                <button class="btn btn-dark">
+                    Delete
+                </button>
+            </form>     
+        </div>
+    </div>
+    <% } %>
+
+    <div class="col-8 offset-3 mb-3">
+        <% if(currUser) { %>
+            <hr>
+        <h4>Leave a Review</h4>
+        <form action="/listings/<%= listing.id %>/reviews" method="POST"  class="needs-validation" novalidate>
+            <div class="mb-3 mt-3">
+                <label for="rating" class="form-label">Rating</label>
+                <input type="range" min="1" max="5" id="rating" name="review[rating]" class="form-range"/>
+            </div>
+
+
+            <div class="mb-3 mt-3">
+                <label for="comment" class="form-label">Comments</label>
+                <textarea 
+                    name="review[comment]"
+                    id="comment"
+                    cols="30"
+                    rows="5"
+                    class="form-control"
+                    required
+                ></textarea>
+                <div class="invalid-feedback">Please add some comments for review</div>
+            </div>
+            <button class="btn btn-outline-dark">Submit</button>
+        </form>
+        <hr>
+        <% } %>
+
+        <% if(listing.reviews.length > 0) { %>
+        <div class="row">
+            <p><b>All Reviews</b></p>
+        <% for(review of listing.reviews) { %>
+        <div class="card col-5 ms-3  mb-3">
+            <div class="card-body">
+                <h5 class="card-title">@<%= review.author.username %></h5>
+                <p class="card-text"><%= review.comment %></p>
+                <p class="card-text"><%= review.rating %> stars</p>
+            </div>
+            <form class="mb-3" method="POST" action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE">
+                <button class="btn btn-sm btn-dark">Delete</button>
+            </form>
+        </div>
+        <% } %>
+    </div>
+    <% } %>
+    </div>
+    <div class="col-6 offset-3 mb-3">
+        <h3>where you'll be</h3>
+        <div id="map"></div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        try {
+            let mapToken = "<%= typeof mapToken !== 'undefined' ? mapToken : '' %>";
+            
+            console.log("Map Debug - Token exists:", !!mapToken, "Token length:", mapToken.length);
+            console.log("Map Debug - Token starts with pk.:", mapToken.startsWith("pk."));
+
+            if (!mapToken || mapToken === 'undefined' || mapToken === '') {
+                console.error("Map Error: MAP_TOKEN is not set in .env");
+                document.getElementById("map").innerHTML = '<p style="text-align:center;padding:2rem;color:#888;">Map could not be loaded. MAP_TOKEN is missing from your .env file.</p>';
+                return;
+            }
+
+            if (typeof mapboxgl === 'undefined') {
+                console.error("Map Error: Mapbox GL JS library not loaded");
+                document.getElementById("map").innerHTML = '<p style="text-align:center;padding:2rem;color:#888;">Map could not be loaded. Mapbox library failed to load.</p>';
+                return;
+            }
+
+            mapboxgl.accessToken = mapToken;
+
+            let coordinates = <%- JSON.stringify(listing.geometry && listing.geometry.coordinates ? listing.geometry.coordinates : [78.9629, 20.5937]) %>;
+            
+            console.log("Map Debug - Coordinates:", coordinates);
+
+            // Validate coordinates
+            if (!Array.isArray(coordinates) || coordinates.length < 2 || 
+                typeof coordinates[0] !== 'number' || typeof coordinates[1] !== 'number') {
+                coordinates = [78.9629, 20.5937]; // Default to India center
+            }
+
+            const map = new mapboxgl.Map({
+                container: 'map',
+                style: 'mapbox://styles/mapbox/streets-v12',
+                center: coordinates,
+                zoom: 9
+            });
+
+            map.on('error', function(e) {
+                console.error("Mapbox runtime error:", e.error);
+            });
+
+            const marker = new mapboxgl.Marker({ color: "red" })
+                .setLngLat(coordinates)
+                .setPopup(
+                    new mapboxgl.Popup({ offset: 25 })
+                        .setHTML(`<h5><%= listing.title %></h5><p>Exact location provided after booking</p>`)
+                )
+                .addTo(map);
+
+            console.log("Map Debug - Map initialized successfully");
+        } catch (err) {
+            console.error("Map initialization error:", err.message);
+            console.error("Full error:", err);
+            let mapEl = document.getElementById("map");
+            if (mapEl) {
+                mapEl.innerHTML = '<p style="text-align:center;padding:2rem;color:#888;">Map could not be loaded: ' + err.message + '</p>';
+            }
+        }
+    })();
+</script>
