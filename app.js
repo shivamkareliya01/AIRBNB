@@ -12,7 +12,7 @@ const ejsMate = require("ejs-mate");
 
 const session = require("express-session");
 const { MongoStore } = require("connect-mongo"); // ✅ Keep only this one
-const MongoStore = require("connect-mongo");
+
 const flash = require("connect-flash");
 
 const passport = require("passport");
