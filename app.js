@@ -63,7 +63,7 @@ app.use(
 const store = MongoStore.create({
     mongoUrl: process.env.ATLASDB_URL,
     crypto: {
-        secret: process.env.EXPRESS_SESSION_SECRET,
+        secret: process.env.EXPRESS_SESSION_SECRET || "myTemporarySecret123",
     },
     touchAfter: 24 * 3600,
 });
@@ -72,9 +72,10 @@ store.on("error", (err) => {
     console.error("Mongo Session Store Error:", err);
 });
 
+
 const sessionOptions = {
     store,
-    secret: process.env.EXPRESS_SESSION_SECRET,
+    secret: process.env.EXPRESS_SESSION_SECRET || "myTemporarySecret123",
     resave: false,
     saveUninitialized: false,
     cookie: {
