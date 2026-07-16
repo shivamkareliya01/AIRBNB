@@ -11,7 +11,7 @@ const methodOverride = require("method-override");
 const ejsMate = require("ejs-mate");
 
 const session = require("express-session");
-const { MongoStore } = require("connect-mongo");
+const { MongoStore } = require("connect-mongo"); // ✅ Keep only this one
 const flash = require("connect-flash");
 
 const passport = require("passport");
@@ -24,7 +24,6 @@ const ExpressError = require("./utils/ExpressError.js");
 const listingsRouter = require("./routes/listing.js");
 const reviewsRouter = require("./routes/review.js");
 const userRouter = require("./routes/user.js");
-const MongoStore = require("connect-mongo");
 
 const dns = require("dns");
 dns.setServers(["8.8.8.8", "8.8.4.4", "1.1.1.1"]);
